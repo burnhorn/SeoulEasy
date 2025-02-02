@@ -1,0 +1,74 @@
+# Python 관련
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+*.env
+*.env.*
+
+# FastAPI 관련
+instance/
+*.log
+*.sqlite3
+*.db
+*.sqlite
+migrations/
+*_test.py
+
+# Alembic 관련
+alembic/versions/
+alembic.ini
+
+# Node.js / Svelte 관련
+node_modules/
+dist/
+.build/
+*.log
+*.lock
+*.tmp
+*.cache
+*.env
+.svelte-kit/
+.vscode/
+package-lock.json
+package.json
+svelte.config.js
+vite.config.js
+jsconfig.json
+
+# OS 생성 파일
+.DS_Store
+Thumbs.db
+
+# IDE/Editor 관련
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.dir-locals.el
+
+# Git 관련
+*.orig
+*.patch
+*.rej
+*.bak
+*.swp
+
+# 기타
+*.gz
+*.tar
+*.zip
+*.7z
+*.bak
+*.tmp
