@@ -10,10 +10,12 @@
   import UserLogin from './lib/routes/UserLogin.svelte';
   import UploadImage from './lib/routes/UploadImage.svelte';
   import UploadVideo from './lib/routes/UploadVideo.svelte';
+  import Recommend from './lib/routes/Recommend.svelte';
 
 
   const routes = {
-    '/': Home,
+    // '/': Home,
+    '/' : Recommend,
     '/about': About,
     '/contact': Contact,
     '/user-create': UserCreate,

@@ -20,6 +20,10 @@ instance/
 *.sqlite
 migrations/
 *_test.py
+clip_model/
+uploads/
+video/
+upload_recommand/
 
 # Alembic 관련
 alembic/versions/
