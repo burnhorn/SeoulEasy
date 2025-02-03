@@ -7,6 +7,11 @@ from src.data import crud
 from src.schema import user_schema
 from src.data.user import user_router
 from src.data.upload import upload_router
+
+# svelte 빌드 파일 가져오기 설정
+from starlette.responses import FileResponse
+from starlette.staticfiles import StaticFiles
+
 # FastAPI 애플리케이션
 app = FastAPI()
 
@@ -25,3 +30,8 @@ async def create_tables():
 
 app.include_router(user_router.router)
 app.include_router(upload_router.router)
+app.mount("/assets", StaticFiles(directory="../svelte-app/dist/assets"))
+
+@app.get("/")
+def index():
+    return FileResponse("../svelte-app/dist/index.html")
