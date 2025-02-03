@@ -8,6 +8,8 @@
   import Contact from './lib/routes/Contact.svelte';
   import UserCreate from './lib/routes/UserCreate.svelte';
   import UserLogin from './lib/routes/UserLogin.svelte';
+  import UploadImage from './lib/routes/UploadImage.svelte';
+  import UploadVideo from './lib/routes/UploadVideo.svelte';
 
 
   const routes = {
@@ -16,6 +18,8 @@
     '/contact': Contact,
     '/user-create': UserCreate,
     '/user-login': UserLogin,
+    '/uploadImage': UploadImage,
+    '/uploadvideo': UploadVideo
   }
 
 </script>

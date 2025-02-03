@@ -21,12 +21,18 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                  <a use:link class="nav-link" href="/user-create">회원가입</a>
-              </li>
-              <li class="nav-item">
-                  <a use:link class="nav-link" href="/user-login">로그인</a>
-              </li>
+            <li class="nav-item">
+                <a use:link class="nav-link" href="/user-create">회원가입</a>
+            </li>
+            <li class="nav-item">
+                <a use:link class="nav-link" href="/user-login">로그인</a>
+            </li>
+            <li class="nav-item">
+                <a use:link class="nav-link" href="/uploadImage">이미지 업로드</a>
+            </li>
+            <li class="nav-item">
+                <a use:link class="nav-link" href="/uploadVideo">비디오 업로드</a>
+            </li>
           </ul>
       </div>
   </div>
