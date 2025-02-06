@@ -5,7 +5,7 @@
 
     // FastAPI에서 유저 정보를 가져오는 함수
     async function get_user_info() {
-        const response = await fetch("http://127.0.0.1:8000/user/1");
+        const response = await fetch("https://seouleasy-fastapi-svelte-ebdwarhrbma3hyap.koreacentral-01.azurewebsites.net/user/1");
         if (response.ok) {
             user_info = await response.json(); // 데이터를 반응형 변수에 저장
         } else {

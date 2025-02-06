@@ -13,7 +13,7 @@
         formData.append("file", imageFile.files[0]); // 파일 객체 추가
 
         try {
-            const response = await fetch("http://127.0.0.1:8000/upload/image", {
+            const response = await fetch("https://seouleasy-fastapi-svelte-ebdwarhrbma3hyap.koreacentral-01.azurewebsites.net/upload/image", {
                 method: "POST",
                 body: formData,
             });

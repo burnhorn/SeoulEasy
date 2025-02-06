@@ -13,7 +13,7 @@
         formData.append("file", imageFile);
 
         try {
-            const response = await fetch("http://127.0.0.1:8000/upload/recommend", {
+            const response = await fetch("https://seouleasy-fastapi-svelte-ebdwarhrbma3hyap.koreacentral-01.azurewebsites.net/upload/recommend", {
                 method: "POST",
                 body: formData,
             });

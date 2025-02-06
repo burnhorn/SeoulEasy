@@ -3,8 +3,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from starlette.config import Config
+import os
 
-test = True
+test = False
 
 # 비동기 연결 문자열 생성 (asyncmy 드라이버 사용)
 if test:
@@ -41,8 +42,12 @@ if test:
             yield db
 
 else:
-    config = Config('.env')
-    SQLALCHEMY_DATABASE_URL = config('SQLALCHEMY_DATABASE_URL')
+    ## local 환경 설정
+    # config = Config('.env')
+    # SQLALCHEMY_DATABASE_URL = config('SQLALCHEMY_DATABASE_URL')
+
+    # Azure 환경 설정
+    SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 
     # 비동기 엔진 및 세션 설정
     engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=True)

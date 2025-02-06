@@ -1,0 +1,12 @@
+Requirement already satisfied: sqlalchemy-aio in c:\project\seouleasy-app\fastapi-app\env\lib\site-packages (0.17.0)
+Requirement already satisfied: represent>=1.4 in c:\project\seouleasy-app\fastapi-app\env\lib\site-packages (from sqlalchemy-aio) (2.1)
+Collecting sqlalchemy<1.4 (from sqlalchemy-aio)
+  Using cached SQLAlchemy-1.3.24-cp313-cp313-win_amd64.whl
+Requirement already satisfied: outcome in c:\project\seouleasy-app\fastapi-app\env\lib\site-packages (from sqlalchemy-aio) (1.3.0.post0)
+Requirement already satisfied: attrs>=19.2.0 in c:\project\seouleasy-app\fastapi-app\env\lib\site-packages (from outcome->sqlalchemy-aio) (25.1.0)
+Installing collected packages: sqlalchemy
+  Attempting uninstall: sqlalchemy
+    Found existing installation: SQLAlchemy 2.0.37
+    Uninstalling SQLAlchemy-2.0.37:
+      Successfully uninstalled SQLAlchemy-2.0.37
+Successfully installed sqlalchemy-1.3.24

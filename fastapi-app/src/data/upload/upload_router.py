@@ -17,8 +17,8 @@ router = APIRouter(
 )
 
 # CLIP 모델 로드
-# 저장 경로 설정
-MODEL_DIR = "./clip_model"
+# 저장 경로 설정 (azure의 작업폴더(/fastapi-app)에 맞춰서 경로 설정을 해줘야 한다.)
+MODEL_DIR = "./src/clip_model"
 UPLOAD_DIR = "upload_recommand"
 
 # 모델 로드 함수
