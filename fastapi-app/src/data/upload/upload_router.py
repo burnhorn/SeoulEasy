@@ -1,20 +1,31 @@
 from fastapi import Depends, HTTPException, APIRouter, File, UploadFile
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from transformers import CLIPProcessor, CLIPModel
 from PIL import Image
 import torch
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+import os
+
+import requests
+import time
 
 from src.data.database import get_db
-from src.data import crud 
+from src.data import crud
 from src.schema import user_schema
-
-import os
 
 router = APIRouter(
     prefix="/upload",
 )
+
+# 디바이스 설정: GPU가 가능하면 'cuda', 아니면 'cpu'
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+if device == "cuda":
+    print("Using cuda")
+else:
+    print("Using cpu")
 
 # CLIP 모델 로드
 # 저장 경로 설정 (azure의 작업폴더(/fastapi-app)에 맞춰서 경로 설정을 해줘야 한다.)
@@ -38,6 +49,9 @@ def load_or_download_model(model_dir):
     # 로컬에서 모델과 프로세서 로드
     model = CLIPModel.from_pretrained(model_dir)
     processor = CLIPProcessor.from_pretrained(model_dir)
+    
+    # GPU 사용 가능하면 모델을 GPU로 이동
+    model = model.to(device)
     return model, processor
 
 # 모델 및 프로세서 로드
@@ -48,6 +62,8 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/recommend")
 async def upload_image(file: UploadFile = File(...)):
+    start_time = time.time()  # 시작 시간 기록
+
     # 이미지 저장
     file_content = await file.read()
     file_path = os.path.join(UPLOAD_DIR, file.filename)
@@ -57,14 +73,24 @@ async def upload_image(file: UploadFile = File(...)):
     # 이미지 처리
     image = Image.open(file_path)
     inputs = processor(images=image, return_tensors="pt")
+    # 입력 텐서를 선택한 디바이스로 이동
+    for key in inputs:
+        inputs[key] = inputs[key].to(device)
     image_features = model.get_image_features(**inputs)
+    
+    # GPU 텐서를 numpy 배열로 변환할 때는 CPU로 이동
+    image_features_np = image_features.cpu().detach().numpy()
 
     # 관광지 추천 로직 
-    recommended_places = recommend_places(image_features)
+    recommended_places = recommend_places(image_features_np)
     
+    end_time = time.time()  # 종료 시간 기록
+    elapsed_time = end_time - start_time  # 경과 시간 계산
+    print(f"upload_image 함수 실행 시간: {elapsed_time:.2f}초")
+
     return {"message": "이미지 업로드 및 분석 완료", "recommended_places": recommended_places}
 
-def recommend_places(image_features):
+def recommend_places(image_features_np):
     # 예시로 관광지 설명 텍스트를 벡터화
     place_descriptions = [
     "Gangnam MICE Special Tourist Zone, a modern business and convention district in Seoul, featuring COEX, luxury shopping malls, and vibrant nightlife",
@@ -187,13 +213,19 @@ def recommend_places(image_features):
 
     # 관광지 텍스트 임베딩 생성
     place_inputs = processor(text=place_descriptions, return_tensors="pt", padding=True)
+    # 입력 텐서를 GPU로 이동 (GPU 사용 시)
+    for key in place_inputs:
+        place_inputs[key] = place_inputs[key].to(device)
     place_features = model.get_text_features(**place_inputs)
     
-    # 이미지와 텍스트 벡터 간의 유사도 계산
-    similarities = cosine_similarity(image_features.detach().numpy(), place_features.detach().numpy())
+    # CPU로 변환하여 numpy로 변환
+    place_features_np = place_features.cpu().detach().numpy()
     
-     # 유사도를 정렬하고 상위 3개의 인덱스 가져오기
-    top_indices = np.argsort(similarities[0])[::-1][:3]  # 유사도를 내림차순으로 정렬 후 상위 3개 선택
+    # 이미지와 텍스트 벡터 간의 유사도 계산
+    similarities = cosine_similarity(image_features_np, place_features_np)
+    
+    # 유사도를 정렬하고 상위 3개의 인덱스 가져오기
+    top_indices = np.argsort(similarities[0])[::-1][:3]  # 내림차순 정렬 후 상위 3개 선택
     
     # 상위 3개의 관광지 반환
     recommended_places = [place_descriptions[i] for i in top_indices]
@@ -238,3 +270,39 @@ async def upload_video(file: UploadFile = File(...)):
         f.write(content)
 
     return {"message": f"동영상 {file.filename} 업로드 성공!", "file_path": file_path}
+
+# Colab의 FastAPI 서버의 ngrok로 공개된 URL (실제 ngrok URL로 교체)
+# COLAB_FASTAPI_URL = "https://3af5-34-141-223-78.ngrok-free.app/upload/recommend"
+
+ngrok_URL = os.getenv("ngrok_URL")
+COLAB_FASTAPI_URL = "{ngrok_URL}/upload/recommend"
+
+@router.post("/local_upload")
+async def local_upload_image(file: UploadFile = File(...)):
+    start_time = time.time()  # 시작 시간 기록
+    """
+    로컬 서버의 엔드포인트로 이미지 파일을 받아
+    Colab의 FastAPI /colab_image 엔드포인트로 전달한 후,
+    그 결과를 클라이언트에 반환합니다.
+    """
+    # 파일 내용을 읽기
+    file_content = await file.read()
+
+    # Colab FastAPI 서버에 전달할 파일 구성
+    files = {
+        "file": (file.filename, file_content, file.content_type)
+    }
+    
+    try:
+        # Colab FastAPI의 /colab_image 엔드포인트로 POST 요청 전송
+        response = requests.post(COLAB_FASTAPI_URL, files=files)
+        response.raise_for_status()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Colab 서버와의 통신 중 오류 발생: {str(e)}")
+    
+    end_time = time.time()  # 종료 시간 기록
+    elapsed_time = end_time - start_time  # 경과 시간 계산
+    print(f"upload_image 함수 실행 시간: {elapsed_time:.2f}초")
+
+    # Colab 서버로부터 받은 JSON 응답 반환
+    return response.json()

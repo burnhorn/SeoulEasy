@@ -4,11 +4,15 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from starlette.config import Config
 import os
+from dotenv import load_dotenv
 
-test = False
+# azure 환경에서 사용하려면 False, False로 변경
+# local 환경에서 sqlite 안 쓰려면 False, True로 변경
+sqlite_test = False
+env_activate = True
 
 # 비동기 연결 문자열 생성 (asyncmy 드라이버 사용)
-if test:
+if sqlite_test:
     # SQLite 비동기 연결 설정 (check_same_thread=False 추가)
     engine = create_async_engine(
         "sqlite+aiosqlite:///./myapi.db", 
@@ -42,12 +46,21 @@ if test:
             yield db
 
 else:
-    ## local 환경 설정
-    # config = Config('.env')
-    # SQLALCHEMY_DATABASE_URL = config('SQLALCHEMY_DATABASE_URL')
+    if env_activate:
+        ## local 환경 설정
+        # .env 파일의 절대 경로를 지정합니다.
+        # .env 파일의 절대 경로를 생성합니다.
+        dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', '.env'))
 
-    # Azure 환경 설정
-    SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
+        # .env 파일을 로드합니다.
+        load_dotenv(dotenv_path)
+        print(dotenv_path)
+        # 환경 변수를 가져옵니다.
+        SQLALCHEMY_DATABASE_URL = os.getenv('SQLALCHEMY_DATABASE_URL')
+    
+    else:
+        # Azure 환경 설정
+        SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 
     # 비동기 엔진 및 세션 설정
     engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=True)
