@@ -13,7 +13,7 @@ import time
 
 from src.data.database import get_db
 from src.data import crud
-from src.schema import user_schema
+from src.schema.user import user_schema
 
 router = APIRouter(
     prefix="/upload",

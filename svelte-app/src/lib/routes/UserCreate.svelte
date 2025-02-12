@@ -2,10 +2,11 @@
     let username = "";
     let email = "";
     let password = "";
+    let password2 = "";
   
     const handleSubmit = () => {
       // 회원가입 처리 로직
-      console.log({ username, email, password });
+      console.log({ username, email, password, password2 });
     };
   </script>
   
@@ -31,6 +32,10 @@
       <div class="mb-3">
         <label for="password" class="form-label">비밀번호</label>
         <input type="password" class="form-control" username="password" bind:value={password} required />
+      </div>
+      <div class="mb-3">
+        <label for="password2" class="form-label">비밀번호 확인</label>
+        <input type="password2" class="form-control" username="password2" bind:value={password2} required />
       </div>
       <button type="submit" class="btn btn-primary">회원가입</button>
     </form>

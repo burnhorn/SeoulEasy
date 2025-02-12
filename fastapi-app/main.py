@@ -4,7 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.data.database import engine, Base, get_db, env_activate
 from src.data import crud 
-from src.schema import user_schema
+from src.schema.user import user_schema
 from src.data.user import user_router
 from src.data.upload import upload_router
 

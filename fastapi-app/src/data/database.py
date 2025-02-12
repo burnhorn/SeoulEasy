@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 # azure 환경에서 사용하려면 False, False로 변경
 # local 환경에서 sqlite 안 쓰려면 False, True로 변경
-sqlite_test = False
+sqlite_test = True
 env_activate = True
 
 # 비동기 연결 문자열 생성 (asyncmy 드라이버 사용)
