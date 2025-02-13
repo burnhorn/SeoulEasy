@@ -1,11 +1,13 @@
 <script>
     import { onMount } from "svelte";
 
+    let _url = import.meta.env.VITE_SERVER_URL
+
     let user_info = {}; // 데이터를 저장할 변수 (반응형)
 
     // FastAPI에서 유저 정보를 가져오는 함수
     async function get_user_info() {
-        const response = await fetch("https://seouleasy-fastapi-svelte-ebdwarhrbma3hyap.koreacentral-01.azurewebsites.net/user/1");
+        const response = await fetch(_url + "/user/1");
         if (response.ok) {
             user_info = await response.json(); // 데이터를 반응형 변수에 저장
         } else {

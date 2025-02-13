@@ -2,6 +2,8 @@
     let imageFile; // 사용자가 업로드한 파일을 저장할 변수
     let responseMessage = ""; // 서버 응답 메시지를 저장할 변수
 
+    let _url = import.meta.env.VITE_SERVER_URL
+
     // 이미지 업로드 함수
     async function uploadImage() {
         if (!imageFile || imageFile.files.length === 0) {
@@ -13,7 +15,7 @@
         formData.append("file", imageFile.files[0]); // 파일 객체 추가
 
         try {
-            const response = await fetch("https://seouleasy-fastapi-svelte-ebdwarhrbma3hyap.koreacentral-01.azurewebsites.net/upload/image", {
+            const response = await fetch(_url + "/upload/image", {
                 method: "POST",
                 body: formData,
             });

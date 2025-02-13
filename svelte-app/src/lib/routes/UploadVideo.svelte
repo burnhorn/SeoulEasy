@@ -1,6 +1,8 @@
 <script>
     let videoFile; // 업로드할 동영상 파일 변수
     let responseMessage = ""; // 서버 응답 메시지
+    
+    let _url = import.meta.env.VITE_SERVER_URL
 
     async function uploadVideo() {
         if (!videoFile || videoFile.files.length === 0) {
@@ -12,7 +14,7 @@
         formData.append("file", videoFile.files[0]); // 파일 객체 추가
 
         try {
-            const response = await fetch("https://seouleasy-fastapi-svelte-ebdwarhrbma3hyap.koreacentral-01.azurewebsites.net/upload/video", {
+            const response = await fetch(_url + "/upload/video", {
                 method: "POST",
                 body: formData,
             });

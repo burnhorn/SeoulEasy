@@ -10,13 +10,12 @@ router = APIRouter(
     prefix="/user",
 )
 
-@router.post("/user/", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/user", status_code=status.HTTP_204_NO_CONTENT)
 async def create_user(user: user_schema.UserCreate, db: AsyncSession = Depends(get_db)):
     existing_user = await crud.get_existing_user(db, user_create=user)
     if existing_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="이미 존재하는 사용자입니다.")
     db_user = await crud.create_user(db=db, user=user)
-    return {"id": db_user.id, "name": db_user.username}
 
 @router.get("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def read_user(user_id: int, db: AsyncSession = Depends(get_db)):

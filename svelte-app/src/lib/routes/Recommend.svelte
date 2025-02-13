@@ -2,6 +2,8 @@
     let imageFileInput; // 파일 input 엘리먼트를 바인딩할 변수
     let recommendedPlaces = [];
 
+    let _url = import.meta.env.VITE_SERVER_URL
+
     async function getRecommendedPlaces() {
         const imageFile = imageFileInput.files[0]; // 선택된 파일 가져오기
         if (!imageFile) {
@@ -13,7 +15,7 @@
         formData.append("file", imageFile);
 
         try {
-            const response = await fetch("https://seouleasy-fastapi-svelte-ebdwarhrbma3hyap.koreacentral-01.azurewebsites.net/upload/recommend", {
+            const response = await fetch(_url + "/upload/recommend", {
                 method: "POST",
                 body: formData,
             });
