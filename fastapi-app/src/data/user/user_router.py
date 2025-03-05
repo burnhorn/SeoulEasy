@@ -18,9 +18,9 @@ router = APIRouter(
     prefix="/user",
 )
 
-secret_key_env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', '.env'))
+secret_key_env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', '..', '.env'))
 
-        # .env 파일을 로드합니다.
+# .env 파일을 로드합니다.
 load_dotenv(secret_key_env_path)
 print(secret_key_env_path)
 # 환경 변수를 가져옵니다.
@@ -31,7 +31,7 @@ SECRET_KEY = SECRET_KEY_ENV
 ALGORITHM = "HS256"
 
 
-@router.post("/user", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/create", status_code=status.HTTP_204_NO_CONTENT)
 async def create_user(user: user_schema.UserCreate, db: AsyncSession = Depends(get_db)):
     existing_user = await crud.get_existing_user(db, user_create=user)
     if existing_user:

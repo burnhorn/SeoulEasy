@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 # azure 환경에서 사용하려면 False, False로 변경
 # local 환경에서 sqlite 안 쓰려면 False, True로 변경
+# local 환경에서 sqlite 쓰려면 True, True로 변경
 sqlite_test = True
 env_activate = True
 
