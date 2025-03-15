@@ -1,11 +1,7 @@
 <script>
     let username = "";
     let password = "";
-  
-    const handleSubmit = () => {
-      // 로그인 처리 로직
-      console.log({ username, password });
-    };
+    
   </script>
   
   <main class="container">
