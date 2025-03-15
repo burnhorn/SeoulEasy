@@ -19,9 +19,11 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173",
-                   "seouleasy-fastapi-svelte-ebdwarhrbma3hyap.koreacentral-01.azurewebsites.net",
-                   ],  # Svelte 앱의 주소 (필요에 따라 변경)
+    allow_origins=[
+        "http://localhost:5173", 
+        "http://127.0.0.1:8000", # Fastapi에 mount하면 fastapi 앱의 주소를 추가
+        "https://seouleasy-fastapi-svelte-ebdwarhrbma3hyap.koreacentral-01.azurewebsites.net"
+    ],  # Svelte 앱의 주소 (필요에 따라 변경)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -36,25 +38,24 @@ app.include_router(user_router.router)
 app.include_router(upload_router.router)
 
 # local 설정
-if env_activate:
-    app.mount("/assets", StaticFiles(directory="../svelte-app/dist/assets"))
+app.mount("/assets", StaticFiles(directory="../svelte-app/dist/assets"))
 
-    @app.get("/")
-    def index():
-        return FileResponse("../svelte-app/dist/index.html")
-else:
-    # azure 설정
-    # 현재 파일의 디렉토리 (예: /seoulEasy-app/fastapi-app)
-    current_dir = os.path.dirname(os.path.abspath(__file__))
+@app.get("/")
+def index():
+    return FileResponse("../svelte-app/dist/index.html")
 
-    # Svelte 빌드 결과물 내의 assets 디렉토리 경로 (예: /seoulEasy-app/svelte-app/dist/assets)
-    static_assets_dir = os.path.join(current_dir, "../svelte-app/dist/assets")
+# # azure 설정
+# # 현재 파일의 디렉토리 (예: /seoulEasy-app/fastapi-app)
+# current_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # 정적 파일 마운트: 브라우저에서 /assets로 접근하면, 실제 파일은 static_assets_dir에 있음
-    app.mount("/assets", StaticFiles(directory=static_assets_dir), name="assets")
+# # Svelte 빌드 결과물 내의 assets 디렉토리 경로 (예: /seoulEasy-app/svelte-app/dist/assets)
+# static_assets_dir = os.path.join(current_dir, "../svelte-app/dist/assets")
 
-    # 루트 엔드포인트: Svelte의 index.html을 제공 (예: /seoulEasy-app/svelte-app/dist/index.html)
-    @app.get("/")
-    def index():
-        index_path = os.path.join(current_dir, "../svelte-app/dist/index.html")
-        return FileResponse(index_path)
+# # 정적 파일 마운트: 브라우저에서 /assets로 접근하면, 실제 파일은 static_assets_dir에 있음
+# app.mount("/assets", StaticFiles(directory=static_assets_dir), name="assets")
+
+# # 루트 엔드포인트: Svelte의 index.html을 제공 (예: /seoulEasy-app/svelte-app/dist/index.html)
+# @app.get("/")
+# def index():
+#     index_path = os.path.join(current_dir, "../svelte-app/dist/index.html")
+#     return FileResponse(index_path)

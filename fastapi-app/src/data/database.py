@@ -6,11 +6,9 @@ from starlette.config import Config
 import os
 from dotenv import load_dotenv
 
-# azure 환경에서 사용하려면 False, False로 변경
-# local 환경에서 sqlite 안 쓰려면 False, True로 변경
-# local 환경에서 sqlite 쓰려면 True, True로 변경
-sqlite_test = True
-env_activate = True
+# SQLite 사용 여부
+sqlite_test = False # sqlite 사용여부
+env_activate = True # 환경 설정 로컬 작업 여부
 
 # 비동기 연결 문자열 생성 (asyncmy 드라이버 사용)
 if sqlite_test:
@@ -55,7 +53,7 @@ else:
 
         # .env 파일을 로드합니다.
         load_dotenv(dotenv_path)
-        print(dotenv_path)
+        # print(dotenv_path)
         # 환경 변수를 가져옵니다.
         SQLALCHEMY_DATABASE_URL = os.getenv('SQLALCHEMY_DATABASE_URL')
     
