@@ -11,3 +11,4 @@ node_modules
 *.log
 test.py
 alembic.ini
+pop_api_test.py

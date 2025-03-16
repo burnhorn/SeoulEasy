@@ -1,5 +1,5 @@
 # Svelte 빌드 단계
-FROM node:18-slim AS SVELTE-BUILD
+FROM node:18-slim AS svelte-build
 WORKDIR /seoulEasy-app/svelte-app
 COPY ./svelte-app/package*.json ./
 RUN npm install
@@ -30,7 +30,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY fastapi-app/ ./
 
 # Svelte 빌드 결과 복사 (원본: /seoulEasy-app/svelte-app/dist, 대상: /seoulEasy-app/svelte-app/dist)
-COPY --from=SVELTE-BUILD /seoulEasy-app/svelte-app/dist /seoulEasy-app/svelte-app/dist
+COPY --from=svelte-build /seoulEasy-app/svelte-app/dist /seoulEasy-app/svelte-app/dist
 
 # 포트 노출
 EXPOSE 8000
