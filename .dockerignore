@@ -9,3 +9,5 @@ env/
 myapi.db
 node_modules
 *.log
+test.py
+alembic.ini
