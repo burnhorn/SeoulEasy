@@ -7,6 +7,10 @@ from src.data import crud
 from src.schema.user import user_schema
 from src.data.user import user_router
 from src.data.upload import upload_router
+from src.data.population import population_router
+# Lifespan 이벤트 임포트 (백그라운드 작업을 위한)
+from src.data.population.background_task import background_task  # 백그라운드 작업 가져오기
+import asyncio
 
 # svelte 빌드 파일 가져오기 설정
 from starlette.responses import FileResponse
@@ -14,8 +18,17 @@ from starlette.staticfiles import StaticFiles
 
 import os
 
-# FastAPI 애플리케이션
-app = FastAPI()
+
+# 라이프스팬 이벤트 핸들러 정의
+async def lifespan(app: FastAPI):
+    # 애플리케이션 시작 시 실행할 작업
+    task = asyncio.create_task(background_task())
+    yield  # 애플리케이션 실행 중...
+    # 애플리케이션 종료 시 실행할 작업
+    task.cancel()
+
+# FastAPI 애플리케이션(lifespan 이벤트 핸들러 추가)
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -36,6 +49,7 @@ async def create_tables():
 
 app.include_router(user_router.router)
 app.include_router(upload_router.router)
+app.include_router(population_router.router)
 
 # local 설정
 app.mount("/assets", StaticFiles(directory="../svelte-app/dist/assets"))

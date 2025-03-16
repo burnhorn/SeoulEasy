@@ -4,10 +4,11 @@ from datetime import datetime
 
 class PopulationBase(BaseModel):
     datetime: datetime
-    region_id: int
+    region_id: Optional[str] = None
     male_rate: Optional[float] = None
     female_rate: Optional[float] = None
     area_congest: Optional[str] = None
+    congestion_message: Optional[str] = None
     gen_10: Optional[float] = Field(None) 
     gen_20: Optional[float] = Field(None)
     gen_30: Optional[float] = Field(None)
@@ -32,7 +33,7 @@ class PopulationResponse(PopulationBase):
 
 class GenderPopulationResponse(BaseModel):
     datetime: datetime
-    region_id: int
+    region_id: Optional[str] = None
     male_min_population: Optional[float] = None
     male_max_population: Optional[float] = None
     female_min_population: Optional[float] = None
@@ -44,7 +45,7 @@ class GenderPopulationResponse(BaseModel):
         
 class AgeGroupPopulationResponse(BaseModel):
     datetime: datetime
-    region_id: int
+    region_id: Optional[str] = None
     gen_10: Optional[float] = None
     gen_20: Optional[float] = None
     gen_30: Optional[float] = None

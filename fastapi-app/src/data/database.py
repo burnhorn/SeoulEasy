@@ -61,7 +61,7 @@ else:
         # Azure 환경 설정
         SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 
-    # 비동기 엔진 및 세션 설정
+    # 비동기 엔진 및 세션 설정. echo=True: SQLAlchemy가 실행하는 모든 SQL 쿼리와 관련 정보가 터미널에 출력.
     engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=True)
 
     AsyncSessionLocal = sessionmaker(
