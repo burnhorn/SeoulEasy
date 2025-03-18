@@ -11,11 +11,13 @@
   import UploadImage from './lib/routes/UploadImage.svelte';
   import UploadVideo from './lib/routes/UploadVideo.svelte';
   import Recommend from './lib/routes/Recommend.svelte';
+  import Test from './lib/routes/test.svelte';
 
 
   const routes = {
     // '/': Home,
     '/' : Recommend,
+    '/test' : Test,
     '/about': About,
     '/contact': Contact,
     '/user-create': UserCreate,
