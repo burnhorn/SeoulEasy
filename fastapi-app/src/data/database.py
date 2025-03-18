@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 # SQLite 사용 여부
 sqlite_test = False # sqlite 사용여부
-env_activate = True # 환경 설정 로컬 작업 여부
+env_activate = False # 환경 설정 로컬 작업 여부
 
 # 비동기 연결 문자열 생성 (asyncmy 드라이버 사용)
 if sqlite_test:

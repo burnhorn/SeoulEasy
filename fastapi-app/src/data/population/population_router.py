@@ -7,6 +7,7 @@ from src.data.database import get_db
 from src.schema.population.population_schema import AgeGroupPopulationResponse, GenderPopulationResponse, PopulationRequest, PopulationResponse
 import pandas as pd
 from sqlalchemy import func
+from sqlalchemy.future import select
 
 router = APIRouter(prefix = "/populations")
 
@@ -26,18 +27,30 @@ router = APIRouter(prefix = "/populations")
 #     population_data = service.create_population(population, db)
 #     return population_data
 
+# 페이징 처리(3시간동안의 5분 간격 데이터)
 @router.get("/region/{region_id}", response_model=list[PopulationResponse])
-def get_population_by_region(region_id: int, db: Session = Depends(get_db)):
+async def get_population_by_region(
+    region_id: str,
+    limit: int = 40,  # 한 번에 가져올 데이터 수
+    offset: int = 0,   # 시작 위치
+    db: Session = Depends(get_db)
+):
     """
-    특정 region_id의 데이터를 반환
+    특정 region_id의 데이터를 페이징하여 반환
     """
-    query = db.query(PopulationStation).filter(PopulationStation.region_id == region_id)
-    df = pd.read_sql(query.statement, db.bind)
-    return df
+    query = (
+        select(PopulationStation)
+        .where(PopulationStation.region_id == region_id)
+        .limit(limit)
+        .offset(offset)
+    )
+    result = await db.execute(query)
+    records = result.scalars().all()
+    return records
 
 @router.get("/get_region_id_time", response_model=list[PopulationResponse])
 def get_population_by_region_and_time(
-    region_id: int,
+    region_id: str,
     start_time: str,
     end_time: str,
     db: Session = Depends(get_db),
@@ -54,7 +67,7 @@ def get_population_by_region_and_time(
 
 @router.get("/gender_population_data", response_model=List[GenderPopulationResponse])
 def get_gender_population_data(
-    region_id: int,
+    region_id: str,
     start_time: str,
     end_time: str,
     db: Session = Depends(get_db)
@@ -79,7 +92,7 @@ def get_gender_population_data(
 
 @router.get("/age_min_population_data", response_model=List[AgeGroupPopulationResponse])
 def get_age_group_min_population_data(
-    region_id: int,
+    region_id: str,
     db: Session = Depends(get_db)
 ):
     """
@@ -109,7 +122,7 @@ def get_age_group_min_population_data(
 
 @router.get("/age_max_population_data", response_model=List[AgeGroupPopulationResponse])
 def get_age_group_max_population_data(
-    region_id: int,
+    region_id: str,
     db: Session = Depends(get_db)
 ):
     """

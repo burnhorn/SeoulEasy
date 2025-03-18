@@ -29,3 +29,9 @@ class PopulationStation(Base):
             f"min_population={self.min_population}, max_population={self.max_population})>"
         )
           
+class Place(Base):
+    __tablename__ = "places"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    place_id = Column(String, index=True)
