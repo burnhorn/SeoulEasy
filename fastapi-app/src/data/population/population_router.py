@@ -27,7 +27,7 @@ router = APIRouter(prefix = "/populations")
 #     population_data = service.create_population(population, db)
 #     return population_data
 
-# 페이징 처리(3시간동안의 5분 간격 데이터)
+# 페이징 처리(최근 200분 동안의 5분 간격 데이터)
 @router.get("/region/{region_id}", response_model=list[PopulationResponse])
 async def get_population_by_region(
     region_id: str,
@@ -41,6 +41,7 @@ async def get_population_by_region(
     query = (
         select(PopulationStation)
         .where(PopulationStation.region_id == region_id)
+        .order_by(PopulationStation.datetime.desc())  # 최신 데이터 우선 정렬
         .limit(limit)
         .offset(offset)
     )
