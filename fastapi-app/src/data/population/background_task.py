@@ -5,6 +5,7 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 from sqlalchemy import select
+from datetime import datetime, timedelta
 import time
 import os
 import sys
@@ -254,13 +255,26 @@ async def fetch_population_data(area_name: str):
                     print(f"[{area_name}] 데이터 수집 중 오류 발생: {e}")
                     await db.rollback()  # 트랜잭션 롤백
 
+
 # 백그라운드 작업 함수
 BATCH_SIZE = 5  # 한 번에 처리할 배치 크기
+TASK_INTERVAL = 300  # 작업 주기 (5분 = 300초)
+
 async def background_task():
     try:
         while True:
+            # 현재 시간
+            now = datetime.now()
+
+            # 다음 작업 시작 시점 계산 (5분 단위로 고정)
+            next_start_time = (now + timedelta(seconds=TASK_INTERVAL)).replace(
+                second=0, microsecond=0
+            )
+            if next_start_time.second != 0:
+                next_start_time += timedelta(minutes=1)
+
+            print(f"작업 시작 시간: {now}")
             start_time = time.time()
-            print(f"작업 시작 시간: {datetime.now()}")  # 현재 시간 출력
 
             # AREA_NM_LIST를 BATCH_SIZE 크기로 나눔
             for i in range(0, len(AREA_NM_LIST), BATCH_SIZE):
@@ -271,10 +285,13 @@ async def background_task():
             end_time = time.time()
             print(f"전체 데이터 수집 완료 (소요 시간: {end_time - start_time:.2f}초)")
 
-            # 다음 작업 실행 전 대기
-            await asyncio.sleep(180)  # 3분 대기
+            # 현재 시간과 다음 작업 시작 시점 간의 대기 시간 계산
+            now = datetime.now()
+            wait_time = (next_start_time - now).total_seconds()
+            if wait_time > 0:
+                print(f"다음 작업까지 대기 시간: {wait_time:.2f}초")
+                await asyncio.sleep(wait_time)  # 다음 작업 시작 시점까지 대기
     except asyncio.CancelledError:
         print("백그라운드 작업이 취소되었습니다.")
-    # 필요한 정리 작업 수행 (예: 데이터베이스 연결 닫기)
     finally:
         print("백그라운드 작업 종료")
