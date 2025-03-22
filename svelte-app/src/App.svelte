@@ -12,7 +12,7 @@
   import UploadVideo from './lib/routes/UploadVideo.svelte';
   import Recommend from './lib/routes/Recommend.svelte';
   import Test from './lib/routes/test.svelte';
-
+  
 
   const routes = {
     // '/': Home,
@@ -32,7 +32,17 @@
 
 <Header/>
 
-<Router {routes}></Router>
+<div class="content">
+  <Router {routes}></Router>
+</div>
 
-<Footer/>
 
+<Footer />
+
+
+<style>
+  .content {
+    padding-bottom: 100px; /* 콘텐츠와 Footer 간 여백 */
+  }
+  
+</style>
