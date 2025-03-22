@@ -17,6 +17,7 @@
             recommendedPlaces = await getRecommendedPlaces(imageFile);
         } catch (error) {
             console.error("이미지 업로드 오류:", error);
+            console.log(imageFile); // 업로드된 파일 정보 확인
             alert("이미지를 업로드하는 동안 오류가 발생했습니다.");
         }
     }
