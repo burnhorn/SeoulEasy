@@ -43,7 +43,7 @@
     ];
     Plotly.newPlot('left-chart', leftChartData, {
       title: 'Male vs Female Rate',
-      xaxis: { title: 'Time', type: 'date', tickformat: '%H:%M' },
+      xaxis: { title: 'Time', type: 'date', tickformat: '%H:%M:%S' }, // x축에 datetime 표시
       yaxis: { title: 'Rate (%)' },
       responsive: true
     });
@@ -60,7 +60,7 @@
     ];
     Plotly.newPlot('center-chart', centerChartData, {
       title: 'Generation Distribution',
-      xaxis: { title: 'Time', type: 'date', tickformat: '%H:%M' },
+      xaxis: { title: 'Time', type: 'date', tickformat: '%H:%M:%S' }, // x축에 datetime 표시
       yaxis: { title: 'Percentage (%)' },
       responsive: true
     });
@@ -72,7 +72,7 @@
     ];
     Plotly.newPlot('right-chart', rightChartData, {
       title: 'Population Range',
-      xaxis: { title: 'Time', type: 'date', tickformat: '%H:%M' },
+      xaxis: { title: 'Time', type: 'date', tickformat: '%H:%M:%S' }, // x축에 datetime 표시
       yaxis: { title: 'Population' },
       responsive: true
     });
