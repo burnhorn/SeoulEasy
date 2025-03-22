@@ -10,31 +10,21 @@ import os
 import sys
 import httpx
 
+# # 작업 상태 로깅 및 모니터링을 위한 설정
+# import logging
+# logging.basicConfig(level=logging.INFO)
+
 # sys.path에 프로젝트 루트를 추가
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..','..'))
 sys.path.append(project_root)
 print(f"프로젝트 루트 경로: {project_root}")
 
 from src.model.population import PopulationStation as Population
-from src.data.database import env_activate, get_db
+from src.data.database import env_activate, get_db, AsyncSessionLocal
 # from dotenv import load_dotenv
 
 
 # AREA_NM 리스트
-# AREA_NM_LIST = [
-#     "강남 MICE 관광특구", "동대문 관광특구", "명동 관광특구", "이태원 관광특구",
-#     "잠실 관광특구", "종로·청계 관광특구", "홍대 관광특구", "경복궁",
-#     "광화문·덕수궁", "보신각", "서울 암사동 유적", "창덕궁·종묘",
-#     "강서한강공원", "고척돔", "광나루한강공원", "광화문광장",
-#     "국립중앙박물관·용산가족공원", "난지한강공원", "남산공원", "노들섬",
-#     "뚝섬한강공원", "망원한강공원", "반포한강공원", "북서울꿈의숲",
-#     "불광천", "서리풀공원·몽마르뜨공원", "서울광장", "서울대공원",
-#     "서울숲공원", "아차산", "양화한강공원", "어린이대공원",
-#     "여의도한강공원", "월드컵공원", "응봉산", "이촌한강공원",
-#     "잠실종합운동장", "잠실한강공원", "잠원한강공원", "청계산",
-#     "청와대"
-# ]
-
 AREA_NM_LIST = [
     "강남 MICE 관광특구",
     "동대문 관광특구",
@@ -175,132 +165,116 @@ else:
     # Azure 환경 설정
     API_KEY = os.getenv("API_KEY")
 
-# API 요청 함수
-# 이 함수는 비동기 함수(async def)로 정의
-# 즉, 호출 시 즉시 실행되지 않고, 비동기 작업 객체(coroutine)를 반환
-async def fetch_population_data(area_name: str, db: AsyncSession):
-    async with httpx.AsyncClient() as client:
-        start_time = time.time()
-        print(f"[{area_name}] 데이터 수집 시작")
-        
-        BASE_URL = "http://openapi.seoul.go.kr:8088"
-        SERVICE = "citydata"
-        START_INDEX = 1
-        END_INDEX = 5
+# 병렬 작업 제한을 위한 세마포어 설정
+MAX_CONCURRENT_TASKS = 5  # 동시에 실행할 최대 작업 수
+semaphore = asyncio.Semaphore(MAX_CONCURRENT_TASKS)
 
-        url = f"{BASE_URL}/{API_KEY}/xml/{SERVICE}/{START_INDEX}/{END_INDEX}/{area_name}"
-        print(f"요청 URL: {url}")
-        
-        try:
-            response = await client.get(url)
-            print(f"응답 상태 코드: {response.status_code}")
-        except Exception as e:
-            print(f"API 요청 에러: {e}")
-            return
-        
-        # 요청 간 지연 시간 추가 (예: 1초)
-        await asyncio.sleep(1)
-        
-        if response.status_code == 200:
-            xml_data = response.text
-            # print(f"응답 데이터: {xml_data}")
-            root = ET.fromstring(xml_data)
+# API 요청 함수. async with를 사용하면 리소스 초기화와 정리가 자동으로 처리됩니다.
+async def fetch_population_data(area_name: str):
+    async with semaphore:  # 병렬 작업 제한. 블록 종료 시 세마포어가 해제됩니다.
+        async with AsyncSessionLocal() as db:  # 각 작업이 독립적인 세션을 사용. 블록 종료 시 세션이 자동으로 닫힙니다.
+            async with db.begin():  # # 트랜잭션은 async with 블록 종료 시 자동으로 커밋 또는 롤백
+                try:
+                    start_time = time.time()
+                    print(f"[{area_name}] 데이터 수집 시작")
 
-            for citydata in root.findall(".//CITYDATA"):
-                area_code = citydata.find("AREA_CD").text
-                congestion_level = citydata.find(".//LIVE_PPLTN_STTS/AREA_CONGEST_LVL").text
-                congestion_message = citydata.find(".//LIVE_PPLTN_STTS/AREA_CONGEST_MSG").text
-                male_rate = citydata.find(".//LIVE_PPLTN_STTS//MALE_PPLTN_RATE").text
-                female_rate = citydata.find(".//LIVE_PPLTN_STTS//FEMALE_PPLTN_RATE").text
-                gen_10 = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_RATE_10").text
-                gen_20 = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_RATE_20").text
-                gen_30 = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_RATE_30").text
-                gen_40 = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_RATE_40").text
-                gen_50 = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_RATE_50").text
-                gen_60 = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_RATE_60").text
-                gen_70 = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_RATE_70").text
-                min_population = citydata.find(".//LIVE_PPLTN_STTS/AREA_PPLTN_MIN").text
-                max_population = citydata.find(".//LIVE_PPLTN_STTS/AREA_PPLTN_MAX").text
-                update_time = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_TIME").text
+                    BASE_URL = "http://openapi.seoul.go.kr:8088"
+                    SERVICE = "citydata"
+                    START_INDEX = 1
+                    END_INDEX = 5
 
-                population = Population(
-                    datetime=datetime.strptime(update_time, "%Y-%m-%d %H:%M"),
-                    region_id=area_code,
-                    male_rate=float(male_rate),
-                    female_rate=float(female_rate),
-                    area_congest=congestion_level,
-                    congestion_message=congestion_message,
-                    gen_10=float(gen_10),
-                    gen_20=float(gen_20),
-                    gen_30=float(gen_30),
-                    gen_40=float(gen_40),
-                    gen_50=float(gen_50),
-                    gen_60=float(gen_60),
-                    gen_70=float(gen_70),
-                    min_population=int(min_population),
-                    max_population=int(max_population),
-                )
-                print(f"수집 데이터: {population}")
-                print(f"DB 세션 상태: {db}")
-                existing_data = await db.execute(
-                    select(Population).where(
-                        Population.datetime == population.datetime,
-                        Population.region_id == population.region_id
-                    )
-                )
-                result = existing_data.scalars().first()
-                if not result:
-                    db.add(population)  # commit하기 전에 db 세션에 새 데이터를 추가
-                    print("새 데이터를 데이터베이스에 추가했습니다.")
-                else:
-                     print("데이터베이스에 데이터가 저장되지 않았습니다.")
+                    url = f"{BASE_URL}/{API_KEY}/xml/{SERVICE}/{START_INDEX}/{END_INDEX}/{area_name}"
 
-            try:
-                await db.commit()
-                print("데이터베이스 커밋 성공")
-            except Exception as e:
-                print(f"데이터베이스 커밋 에러: {e}")
+                    async with httpx.AsyncClient() as client: # 클라이언트는 async with 블록 종료 시 자동으로 닫힘
+                        response = await client.get(url)
+                        await asyncio.sleep(0.5)  # 요청 간 대기 시간 추가
 
-        end_time = time.time()
-        print(f"[{area_name}] 데이터 수집 완료 (소요 시간: {end_time - start_time:.2f}초)")
+                        if response.status_code == 200:
+                            xml_data = response.text
+                            root = ET.fromstring(xml_data)
 
+                            for citydata in root.findall(".//CITYDATA"):
+                                area_code = citydata.find("AREA_CD").text
+                                congestion_level = citydata.find(".//LIVE_PPLTN_STTS/AREA_CONGEST_LVL").text
+                                congestion_message = citydata.find(".//LIVE_PPLTN_STTS/AREA_CONGEST_MSG").text
+                                male_rate = citydata.find(".//LIVE_PPLTN_STTS//MALE_PPLTN_RATE").text
+                                female_rate = citydata.find(".//LIVE_PPLTN_STTS//FEMALE_PPLTN_RATE").text
+                                gen_10 = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_RATE_10").text
+                                gen_20 = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_RATE_20").text
+                                gen_30 = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_RATE_30").text
+                                gen_40 = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_RATE_40").text
+                                gen_50 = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_RATE_50").text
+                                gen_60 = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_RATE_60").text
+                                gen_70 = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_RATE_70").text
+                                min_population = citydata.find(".//LIVE_PPLTN_STTS/AREA_PPLTN_MIN").text
+                                max_population = citydata.find(".//LIVE_PPLTN_STTS/AREA_PPLTN_MAX").text
+                                update_time = citydata.find(".//LIVE_PPLTN_STTS//PPLTN_TIME").text
 
-# #백그라운드 작업 (순차처리)
-# async def background_task():
-#     async for db in get_db():  # get_db를 사용하여 세션 생성
-#         while True:
-#             start_time = time.time()
-#             print("데이터베이스 세션 생성 성공")
-#             for area_name in AREA_NM_LIST:
-#                 await fetch_population_data(area_name, db)
-#             end_time = time.time()
-#             print(f"전체 데이터 수집 완료 (소요 시간: {end_time - start_time:.2f}초)")
-#             await asyncio.sleep(310)  # 5분 대기
+                                population = Population(
+                                    datetime=datetime.strptime(update_time, "%Y-%m-%d %H:%M"),
+                                    region_id=area_code,
+                                    male_rate=float(male_rate),
+                                    female_rate=float(female_rate),
+                                    area_congest=congestion_level,
+                                    congestion_message=congestion_message,
+                                    gen_10=float(gen_10),
+                                    gen_20=float(gen_20),
+                                    gen_30=float(gen_30),
+                                    gen_40=float(gen_40),
+                                    gen_50=float(gen_50),
+                                    gen_60=float(gen_60),
+                                    gen_70=float(gen_70),
+                                    min_population=int(min_population),
+                                    max_population=int(max_population),
+                                )
 
+                                # 데이터베이스 중복 확인
+                                existing_data = await db.execute(
+                                    select(Population).where(
+                                        Population.datetime == population.datetime,
+                                        Population.region_id == population.region_id
+                                    )
+                                )
+                                result = existing_data.scalars().first()
+                                if not result:
+                                    db.add(population)
+                                    print("새 데이터를 데이터베이스에 추가했습니다.")
+                                else:
+                                    print("이미 존재하는 데이터입니다.")
 
-# 병렬 처리 시 배치 크기 설정
-BATCH_SIZE = 20
+                            await db.commit()
+                            print(f"[{area_name}] 데이터베이스 커밋 성공")
+                        else:
+                            print(f"[{area_name}] 데이터 수집 실패: {response.status_code}")
+            
+                    end_time = time.time()
+                    print(f"[{area_name}] 데이터 수집 완료 (소요 시간: {end_time - start_time:.2f}초)")
 
+                except Exception as e:
+                    print(f"[{area_name}] 데이터 수집 중 오류 발생: {e}")
+                    await db.rollback()  # 트랜잭션 롤백
+
+# 백그라운드 작업 함수
+BATCH_SIZE = 5  # 한 번에 처리할 배치 크기
 async def background_task():
-    while True:
-        start_time = time.time()
+    try:
+        while True:
+            start_time = time.time()
+            print(f"작업 시작 시간: {datetime.now()}")  # 현재 시간 출력
 
-        # AREA_NM_LIST를 BATCH_SIZE 크기로 나눔
-        for i in range(0, len(AREA_NM_LIST), BATCH_SIZE):
-            batch = AREA_NM_LIST[i:i + BATCH_SIZE]  # 20개씩 나눔
-            batch_tasks = []
-            for area_name in batch:
-                async for db in get_db():
-                    # 배치 크기만큼 작업을 추가
-                    # fetch_population_data 함수는 비동기 함수(async def)이므로 바로 실행되지 않음
-                    # 실행을 위해 asyncio.create_task()로 작업 객체를 생성
-                    # 작업 객체는 실행 준비 상태로 batch_tasks 리스트에 추가
-                    batch_tasks.append(fetch_population_data(area_name, db))
-            # 현재 배치의 작업을 병렬로 실행(여러 비동기 작업을 병렬로 실행 후 완료되면 다음 코드 진행)
-            # API 요청은 네트워크 I/O 작업이므로 병렬로 실행하면 효율적
-            # 네트워크 요청은 응답을 기다리는 동안 CPU를 사용하지 않으므로, 다른 작업을 동시에 실행할 수 있음
-            await asyncio.gather(*batch_tasks)
+            # AREA_NM_LIST를 BATCH_SIZE 크기로 나눔
+            for i in range(0, len(AREA_NM_LIST), BATCH_SIZE):
+                batch = AREA_NM_LIST[i:i + BATCH_SIZE]
+                batch_tasks = [fetch_population_data(area_name) for area_name in batch]
+                await asyncio.gather(*batch_tasks)  # 병렬 작업 실행
 
-        end_time = time.time()
-        print(f"전체 데이터 수집 완료 (소요 시간: {end_time - start_time:.2f}초)")
-        await asyncio.sleep(150)  # 2분 30초 대기
+            end_time = time.time()
+            print(f"전체 데이터 수집 완료 (소요 시간: {end_time - start_time:.2f}초)")
+
+            # 다음 작업 실행 전 대기
+            await asyncio.sleep(180)  # 3분 대기
+    except asyncio.CancelledError:
+        print("백그라운드 작업이 취소되었습니다.")
+    # 필요한 정리 작업 수행 (예: 데이터베이스 연결 닫기)
+    finally:
+        print("백그라운드 작업 종료")

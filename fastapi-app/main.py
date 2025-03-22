@@ -23,14 +23,20 @@ if env_activate:
 else:
     # 라이프스팬 이벤트 핸들러 정의
     async def lifespan(app: FastAPI):
-        # 애플리케이션 시작 시 실행할 작업
+        # 애플리케이션 시작 시 실행할 작업(비동기 작업으로 생성하고 실행)
         task = asyncio.create_task(background_task())
-        yield  # 애플리케이션 실행 중...
-        # 애플리케이션 종료 시 실행할 작업
-        task.cancel()
+        try:
+            yield  # 애플리케이션 실행 중...
+        finally:
+            # 애플리케이션 종료 시 실행할 작업
+            task.cancel()
+            try:
+                await task  # 작업이 안전하게 종료될 때까지 대기
+            except asyncio.CancelledError:
+                print("백그라운드 작업이 정상적으로 종료되었습니다.")
 
-    # FastAPI 애플리케이션(lifespan 이벤트 핸들러 추가)
-    app = FastAPI(lifespan=lifespan)
+# FastAPI 애플리케이션(lifespan 이벤트 핸들러 추가)
+app = FastAPI(lifespan=lifespan)
 
 
 app.add_middleware(
