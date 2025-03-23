@@ -7,13 +7,13 @@
 ---
 ## 사용 예시
 `이미지를 업로드 하세요!`
-![Reference Image](https://github.com/burnhorn/SeoulEasy/raw/main/svelte-app/src/assets/images/recommend1.jpg)
+![Reference Image](https://github.com/burnhorn/SeoulEasy/raw/main/svelte-app/src/assets/images/recommend1.JPG)
 
 `가장 분위기가 유사한 3곳을 추천합니다!`
-![Reference Image](https://github.com/burnhorn/SeoulEasy/raw/main/svelte-app/src/assets/images/recommend2.jpg)
+![Reference Image](https://github.com/burnhorn/SeoulEasy/raw/main/svelte-app/src/assets/images/recommend2.JPG)
 
 `원하는 곳을 선택하면 현재 (1)혼잡도 (2)혼잡 설명 (3)실시간 유동인구 분석 차트를 볼 수 있습니다!`
-![Reference Image](https://github.com/burnhorn/SeoulEasy/raw/main/svelte-app/src/assets/images/recommend3.jpg)
+![Reference Image](https://github.com/burnhorn/SeoulEasy/raw/main/svelte-app/src/assets/images/recommend3.JPG)
 
 ---
 
