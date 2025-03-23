@@ -5,6 +5,12 @@
 **FastAPI**를 백엔드로, **Svelte**를 프론트엔드로 사용하며, 백그라운드 작업을 통해 서울시의 실시간 데이터를 주기적으로 수집하고 API를 통해 추천 관광지의 혼잡도 및 인구 분포도 정보를 제공한 후, 프론트엔드에서 시각화합니다.
 
 ---
+
+### 아래의 뱃지를 클릭하면 배포된 프로젝트 사이트로 이동합니다.
+[![프로젝트 배포 상태](https://img.shields.io/badge/프로젝트-배포중-brightgreen)](https://seouleasy-fastapi-svelte-ebdwarhrbma3hyap.koreacentral-01.azurewebsites.net/)
+
+
+---
 ## 사용 예시
 `이미지를 업로드 하세요!`
 ![Reference Image](https://github.com/burnhorn/SeoulEasy/raw/main/svelte-app/src/assets/images/recommend1.JPG)
