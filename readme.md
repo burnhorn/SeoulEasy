@@ -15,10 +15,10 @@
 `이미지를 업로드 하세요!`
 ![Reference Image](https://github.com/burnhorn/SeoulEasy/raw/main/svelte-app/src/assets/images/recommend1.JPG)
 
-`가장 분위기가 유사한 3곳을 추천합니다!`
+`분위기가 가장 유사한 3곳을 추천합니다!`
 ![Reference Image](https://github.com/burnhorn/SeoulEasy/raw/main/svelte-app/src/assets/images/recommend2.JPG)
 
-`원하는 곳을 선택하면 현재 (1)혼잡도 (2)혼잡 설명 (3)실시간 유동인구 분석 차트를 볼 수 있습니다!`
+`원하는 곳을 선택하면 현재 (1)혼잡도 (2)혼잡도 설명 (3)실시간 유동인구 분석 차트를 볼 수 있습니다!`
 ![Reference Image](https://github.com/burnhorn/SeoulEasy/raw/main/svelte-app/src/assets/images/recommend3.JPG)
 
 ---
@@ -26,8 +26,10 @@
 ## 주요 기능
 
 1. **실시간 데이터 수집**
-   - 서울시의 실시간 도시 데이터를 5분 간격으로 수집합니다.
-   - 데이터는 특정 지역(`region_id`)별로 저장됩니다.
+    - 백그라운드 작업
+        - 서울시의 실시간 도시 데이터를 비동기 작업을 통해 데이터를 주기적으로 수집하고 데이터베이스에 저장합니다.
+        - 작업 주기는 5분으로 고정되어 있으며, 작업 처리 시간에 관계없이 일정한 주기를 유지합니다.
+   - 데이터는 116개의 특정 지역(`region_id`)별로 저장됩니다.
 
 2. **Clip 모델 기반 이미지 분석 및 추천 기능**
     - 이미지 업로드 및 분석
@@ -46,10 +48,6 @@
 4. **데이터 시각화**
    - Svelte를 사용하여 데이터를 시각화합니다.
    - Plotly.js를 활용하여 차트를 생성하며, 반응형 디자인을 지원합니다.
-
-5. **백그라운드 작업**
-   - 비동기 작업을 통해 데이터를 주기적으로 수집하고 데이터베이스에 저장합니다.
-   - 작업 주기는 5분으로 고정되어 있으며, 작업 처리 시간에 관계없이 일정한 주기를 유지합니다.
 
 ---
 
@@ -121,7 +119,7 @@ VITE_SERVER_URL= your_WEBSITE_URL   # 배포 서버 작업 시
 ```
 #### 4. 백엔드 실행
 ```bash
-uvicorn src.main:app --reload
+uvicorn main:app --reload
 ```
 
 ### 3. 프론트엔드 설정
