@@ -1,10 +1,12 @@
 <script>
     import Test from "./test.svelte"; // Test 컴포넌트 임포트
-    import { getRecommendedPlaces, getPlaceId } from "../api.js"; // API 모듈 임포트
+    import { getRecommendedPlaces, getPlaceId, analyzeImage} from "../api.js"; // API 모듈 임포트
     
     let imageFileInput; // 파일 input 엘리먼트를 바인딩할 변수
     let recommendedPlaces = [];
     let selectedPlace = ''; // 선택된 관광지
+    let analyzedImage = ""; // 분석된 이미지를 저장할 변수
+    let captions = []; // 캡션 데이터를 저장할 변수
 
     async function handleGetRecommendedPlaces() {
         const imageFile = imageFileInput.files[0]; // 선택된 파일 가져오기
@@ -14,10 +16,15 @@
         }
 
         try {
+            // 추천 관광지 가져오기
             recommendedPlaces = await getRecommendedPlaces(imageFile);
+
+            // Vision API 호출
+            const result = await analyzeImage(imageFile);
+            captions = result.captions; // 캡션 데이터 저장
+            analyzedImage = result.image; // Base64 이미지 저장
         } catch (error) {
             console.error("이미지 업로드 오류:", error);
-            console.log(imageFile); // 업로드된 파일 정보 확인
             alert("이미지를 업로드하는 동안 오류가 발생했습니다.");
         }
     }
@@ -46,6 +53,26 @@
         <button on:click={handleGetRecommendedPlaces} class="btn btn-primary w-100">
             이미지 업로드
         </button>
+
+        {#if analyzedImage}
+            <div class="mt-4">
+                <h2 class="h5">분석된 이미지:</h2>
+                <img src={analyzedImage} alt="분석된 이미지" class="img-fluid" />
+            </div>
+        {/if}
+
+        {#if captions.length > 0}
+            <div class="mt-4">
+                <h2 class="h5">캡션 데이터:</h2>
+                <ul class="list-group mt-2">
+                    {#each captions as caption}
+                        <li class="list-group-item">
+                            {caption.text} (신뢰도: {caption.confidence.toFixed(2)})
+                        </li>
+                    {/each}
+                </ul>
+            </div>
+        {/if}
 
         {#if recommendedPlaces.length > 0}
             <div class="mt-4">
@@ -85,5 +112,11 @@
         padding: 0;
         border: none;
         background: none;
+    }
+
+    img {
+        max-width: 100%;
+        height: auto;
+        margin-top: 20px;
     }
 </style>
