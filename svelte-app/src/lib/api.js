@@ -53,3 +53,17 @@ export async function analyzeImage(imageFile) {
         image: `data:image/jpeg;base64,${result.image}`, // Base64로 인코딩된 이미지
     };
 }
+
+
+// GPT API 호출 함수
+export async function fetchGPTResponse(regionId) {
+    const response = await fetch(`/vision/gpt/${regionId}`, {
+        method: "POST",
+    });
+
+    if (!response.ok) {
+        throw new Error("GPT 응답을 가져오는 동안 오류가 발생했습니다.");
+    }
+
+    return await response.json();
+}

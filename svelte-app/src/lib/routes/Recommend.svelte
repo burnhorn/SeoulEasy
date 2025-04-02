@@ -1,12 +1,13 @@
 <script>
     import Test from "./test.svelte"; // Test 컴포넌트 임포트
-    import { getRecommendedPlaces, getPlaceId, analyzeImage} from "../api.js"; // API 모듈 임포트
+    import { getRecommendedPlaces, getPlaceId, analyzeImage, fetchGPTResponse} from "../api.js"; // API 모듈 임포트
     
     let imageFileInput; // 파일 input 엘리먼트를 바인딩할 변수
     let recommendedPlaces = [];
     let selectedPlace = ''; // 선택된 관광지
     let analyzedImage = ""; // 분석된 이미지를 저장할 변수
     let captions = []; // 캡션 데이터를 저장할 변수
+    let gptResponse = null; // GPT 응답 데이터를 저장할 변수
 
     async function handleGetRecommendedPlaces() {
         const imageFile = imageFileInput.files[0]; // 선택된 파일 가져오기
@@ -18,6 +19,9 @@
         try {
             // 추천 관광지 가져오기
             recommendedPlaces = await getRecommendedPlaces(imageFile);
+
+            const regionData = recommendedPlaces
+
 
             // Vision API 호출
             const result = await analyzeImage(imageFile);
@@ -31,10 +35,17 @@
 
     async function handleSelectPlace(place) {
         try {
+            // 선택된 관광지 ID 가져오기
             selectedPlace = await getPlaceId(place);
+
+            // FastAPI의 gpt/{region_id} 엔드포인트 호출
+            const response = await fetchGPTResponse(selectedPlace);
+
+            // GPT 응답 데이터 저장
+            gptResponse = response.gpt_response;
         } catch (error) {
-            console.error("관광지 ID 검색 오류:", error);
-            alert("관광지 ID를 검색하는 동안 오류가 발생했습니다.");
+            console.error("관광지 ID 검색 또는 GPT 호출 오류:", error);
+            alert("관광지 정보를 가져오는 동안 오류가 발생했습니다.");
         }
     }
 </script>
@@ -89,8 +100,8 @@
     </div>
 </main>
 
-{#if selectedPlace}
-    <Test place={selectedPlace} />
+{#if selectedPlace && gptResponse}
+  <Test place={selectedPlace} gptResponse={gptResponse} />
 {/if}
 
 <style>

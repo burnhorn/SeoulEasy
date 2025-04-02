@@ -3,10 +3,11 @@
   import Plotly from 'plotly.js-dist';
 
   export let place = ''; // 외부에서 전달받을 관광지 이름
-
+  export let gptResponse = ''; // GPT API 결과를 저장할 변수
   let regionData = [];
   let areaCongest = '';
   let congestionMessage = '';
+  
 
   // 환경 변수에서 서버 URL을 가져옵니다.
   let _url = import.meta.env.VITE_SERVER_URL;
@@ -113,6 +114,9 @@
   </div>
   <div class="info-item">
     <p><strong>💬 Congestion Message:</strong> {congestionMessage}</p>
+  </div>
+  <div class="info-item">
+    <p><strong>🤖 GPT Response:</strong> {gptResponse}</p>
   </div>
 </div>
 
