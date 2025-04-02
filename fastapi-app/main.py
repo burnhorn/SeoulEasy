@@ -6,7 +6,7 @@ from src.data.database import engine, Base, get_db, env_activate
 from src.data import crud 
 from src.schema.user import user_schema
 from src.data.user import user_router
-from src.data.upload import upload_router
+from src.data.upload import upload_router, vision_router
 from src.data.population import population_router
 # Lifespan 이벤트 임포트 (백그라운드 작업을 위한)
 from src.data.population.background_task import background_task  # 백그라운드 작업 가져오기
@@ -60,6 +60,7 @@ async def create_tables():
 app.include_router(user_router.router)
 app.include_router(upload_router.router)
 app.include_router(population_router.router)
+app.include_router(vision_router.router)
 
 # local 설정
 app.mount("/assets", StaticFiles(directory="../svelte-app/dist/assets"))
