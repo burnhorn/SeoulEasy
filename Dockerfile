@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libopenblas-dev \
     libssl-dev \
+    libgl1-mesa-glx \
     && rm -rf /var/lib/apt/lists/*
 
 # pip 최신화 및 requirements 설치
