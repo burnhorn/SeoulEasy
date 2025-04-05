@@ -7,16 +7,18 @@
   let regionData = [];
   let areaCongest = '';
   let congestionMessage = '';
-  
+  let loading = false; // 로딩 상태를 저장할 변수
 
   // 환경 변수에서 서버 URL을 가져옵니다.
   let _url = import.meta.env.VITE_SERVER_URL;
 
   // regionData를 가져오는 API 호출 함수
   async function fetchRegionData(regionId) {
+    loading = true; // 로딩 시작
     try {
       const response = await fetch(`${_url}/populations/region/${regionId}`);
       const data = await response.json();
+      console.log(`Response status: ${response.status}`);
       regionData = data;
 
       // 첫 번째 데이터 기준으로 congestion 값 설정
@@ -27,6 +29,9 @@
       updateCharts();
     } catch (error) {
       console.error('데이터 수집 오류:', error);
+    }
+    finally {
+      loading = false; // 로딩 종료
     }
   }
 
@@ -107,6 +112,16 @@
   });
 </script>
 
+<!-- 로딩 상태 표시 -->
+{#if loading}
+<div class="loading-spinner">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <p>데이터를 불러오는 중입니다...</p>
+</div>
+{/if}
+
 <!-- 정보 영역 -->
 <div class="info">
   <div class="info-item">
@@ -128,6 +143,19 @@
 </div>
 
 <style>
+    .loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+  }
+
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+  }
+
   .info {
     display: flex;
     flex-direction: column;

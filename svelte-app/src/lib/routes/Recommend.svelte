@@ -8,6 +8,7 @@
     let analyzedImage = ""; // 분석된 이미지를 저장할 변수
     let captions = []; // 캡션 데이터를 저장할 변수
     let gptResponse = null; // GPT 응답 데이터를 저장할 변수
+    let loading = false; // 로딩 상태를 저장할 변수
 
     async function handleGetRecommendedPlaces() {
         const imageFile = imageFileInput.files[0]; // 선택된 파일 가져오기
@@ -15,7 +16,7 @@
             alert("이미지를 선택해주세요.");
             return;
         }
-
+        loading = true; // 로딩 시작
         try {
             // 추천 관광지 가져오기
             recommendedPlaces = await getRecommendedPlaces(imageFile);
@@ -31,9 +32,13 @@
             console.error("이미지 업로드 오류:", error);
             alert("이미지를 업로드하는 동안 오류가 발생했습니다.");
         }
+        finally {
+            loading = false; // 로딩 종료
+        }
     }
 
     async function handleSelectPlace(place) {
+        loading = true; // 로딩 시작
         try {
             // 선택된 관광지 ID 가져오기
             selectedPlace = await getPlaceId(place);
@@ -46,6 +51,9 @@
         } catch (error) {
             console.error("관광지 ID 검색 또는 GPT 호출 오류:", error);
             alert("관광지 정보를 가져오는 동안 오류가 발생했습니다.");
+        }
+        finally {
+            loading = false; // 로딩 종료
         }
     }
 </script>
@@ -64,6 +72,16 @@
         <button on:click={handleGetRecommendedPlaces} class="btn btn-primary w-100">
             이미지 업로드
         </button>
+
+        <!-- 로딩 상태 표시 -->
+        {#if loading}
+            <div class="loading-spinner mt-4 text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">데이터를 불러오는 중입니다...</p>
+            </div>
+        {/if}
 
         {#if analyzedImage}
             <div class="mt-4">
@@ -129,5 +147,17 @@
         max-width: 100%;
         height: auto;
         margin-top: 20px;
+    }
+
+    .loading-spinner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
     }
 </style>
