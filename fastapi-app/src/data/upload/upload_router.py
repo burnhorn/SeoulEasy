@@ -16,7 +16,7 @@ from mimetypes import guess_type
 from src.data.database import get_db
 from src.data import crud
 from src.schema.user import user_schema
-from src.model.population import Place
+from src.model.population import Place, PopulationStation
 
 # 변수 이름 변경
 from .place_name_mapping import place_name_mapping as place_name_dict
@@ -206,80 +206,100 @@ def recommend_places(image_features_np):
     # 이미지와 텍스트 벡터 간의 유사도 계산
     similarities = cosine_similarity(image_features_np, place_features_np)
     
-    # 유사도를 정렬하고 상위 3개의 인덱스 가져오기
-    top_indices = np.argsort(similarities[0])[::-1][:3]  # 내림차순 정렬 후 상위 3개 선택
+    # 유사도를 정렬하고 상위 인덱스 가져오기
+    top_indices = np.argsort(similarities[0])[::-1]  # 내림차순 정렬 후 상위 선택
     
-    # 상위 3개의 관광지 반환
+    # 상위 관광지 반환
     recommended_places = [place_descriptions[i] for i in top_indices]
-
+    
     # 한글로 변환
     translated_places = translate_to_korean(recommended_places, place_name_mapping)
+    print(translated_places)
     return translated_places
 
 @router.post("/recommend")
-async def upload_image(file: UploadFile = File(...)):
-    start_time = time.time()  # 시작 시간 기록
+async def upload_image(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
+    start_time = time.time()
 
-    # MIME 타입 검사
-    allowed_mime_types = ["image/jpeg", "image/png", "image/jpg"]  # 허용할 MIME 타입 목록
+    # 1. 파일 검증
+    allowed_mime_types = ["image/jpeg", "image/png", "image/jpg"]
     if file.content_type not in allowed_mime_types:
-        raise HTTPException(
-            status_code=400,
-            detail=f"허용되지 않는 파일 형식입니다: {file.content_type}. JPEG 또는 PNG 이미지만 업로드 가능합니다."
-        )
+        raise HTTPException(status_code=400, detail="JPEG 또는 PNG 이미지만 업로드 가능합니다.")
     
-    # 파일 확장자 확인
     guessed_type, _ = guess_type(file.filename)
     if guessed_type not in allowed_mime_types:
-        raise HTTPException(
-            status_code=400,
-            detail=f"파일 확장자가 MIME 타입과 일치하지 않습니다: {file.filename}"
-        )
-    
-    # 파일 크기 제한 (예: 5MB)
-    max_file_size = 5 * 1024 * 1024  # 5MB
+        raise HTTPException(status_code=400, detail="파일 확장자가 MIME 타입과 일치하지 않습니다.")
+
+    max_file_size = 5 * 1024 * 1024
     file_size = 0
-    for chunk in file.file: # 파일 끝까지 읽음
+    for chunk in file.file:
         file_size += len(chunk)
         if file_size > max_file_size:
-            raise HTTPException(
-                status_code=413,
-                detail=f"파일 크기가 너무 큽니다. 최대 허용 크기는 {max_file_size / (1024 * 1024)}MB입니다."
-            )
-    file.file.seek(0)  # 파일 포인터를 처음으로 이동
+            raise HTTPException(status_code=413, detail="파일 크기가 너무 큽니다.")
+    file.file.seek(0)
 
     try:
-        # 파일 내용을 메모리에서 읽기
+        # 2. 이미지 처리
         file_content = await file.read()
-
-        # PIL 이미지로 변환 및 유효성 검사
         try:
             image = Image.open(io.BytesIO(file_content))
-            image.verify()  # 이미지 유효성 검사
-            image = Image.open(io.BytesIO(file_content))  # 다시 열기 (verify()는 파일을 닫음)
+            image.verify()
+            image = Image.open(io.BytesIO(file_content))
         except UnidentifiedImageError:
             raise HTTPException(status_code=400, detail="유효하지 않은 이미지 파일입니다.")
 
-        # 이미지 처리
         inputs = processor(images=image, return_tensors="pt")
         for key in inputs:
-            inputs[key] = inputs[key].to(device)  # 입력 텐서를 디바이스로 이동
+            inputs[key] = inputs[key].to(device)
         image_features = model.get_image_features(**inputs)
-
-        # GPU 텐서를 numpy 배열로 변환
         image_features_np = image_features.cpu().detach().numpy()
 
-        # 관광지 추천 로직
+        # 3. 추천 관광지
         recommended_places = recommend_places(image_features_np)
 
-        end_time = time.time()  # 종료 시간 기록
-        elapsed_time = end_time - start_time  # 경과 시간 계산
+        accepted = []
+        removed = []
+
+        async with db.begin():
+            for place_name in recommended_places:
+                place_result = await db.execute(select(Place).filter(Place.name == place_name))
+                place_obj = place_result.scalars().first()
+                if not place_obj:
+                    raise HTTPException(status_code=404, detail=f"Place not found: {place_name}")
+
+                region_id = place_obj.place_id
+                pop_result = await db.execute(
+                    select(PopulationStation)
+                    .where(PopulationStation.region_id == region_id)
+                    .order_by(PopulationStation.datetime.desc())
+                    .limit(1)
+                )
+                pop_record = pop_result.scalars().first()
+                congest = pop_record.area_congest if pop_record else None
+
+                if congest == "붐빔":
+                    removed.append(place_name)
+                else:
+                    accepted.append(place_name)
+
+        # 추천 관광지에서 "붐빔" 지역을 제외한 후 3개 선택
+        while len(accepted) < 3 and removed:
+            accepted.append(removed.pop()) # Stack 구조로 마지막 요소를 꺼내서 accepted에 추가
+
+        final_recommended_places = accepted[:3]
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
         print(f"upload_image 함수 실행 시간: {elapsed_time:.2f}초")
 
-        return {"message": "이미지 업로드 및 분석 완료", "recommended_places": recommended_places}
+        return {
+            "message": "이미지 업로드 및 분석 완료",
+            "recommended_places": final_recommended_places
+        }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"이미지 처리 중 오류 발생: {str(e)}")
+
 
 @router.get("/places/{name}")
 async def read_place(name: str, db: AsyncSession = Depends(get_db)):
