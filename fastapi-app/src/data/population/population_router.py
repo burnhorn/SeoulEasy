@@ -24,16 +24,22 @@ async def get_population_by_region(
     """
     특정 region_id의 데이터를 페이징하여 반환
     """
-    query = (
-        select(PopulationStation)
-        .where(PopulationStation.region_id == region_id)
-        .order_by(PopulationStation.datetime.desc())  # 최신 데이터 우선 정렬
-        .limit(limit)
-        .offset(offset)
-    )
-    result = await db.execute(query)
-    records = result.scalars().all()
-    return records
+    try:
+        query = (
+            select(PopulationStation)
+            .where(PopulationStation.region_id == region_id)
+            .order_by(PopulationStation.datetime.desc())  # 최신 데이터 우선 정렬
+            .limit(limit)
+            .offset(offset)
+        )
+        result = await db.execute(query)
+        records = result.scalars().all()
+        
+        if not records:
+            raise HTTPException(status_code=404, detail="해당 region_id의 데이터를 찾을 수 없습니다.")
+        return records
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"오류 발생: {str(e)}") 
 
 # 성별 인구 데이터 조회
 @router.get("/gender_population_data", response_model=List[GenderPopulationResponse])

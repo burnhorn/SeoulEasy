@@ -152,16 +152,6 @@ model = AzureChatOpenAI(
     max_retries=2,
 )
 
-# 프롬프트 템플릿 구성: 시스템 메시지와 이전 메시지들을 포함하는 메시지 체인
-prompt_template = ChatPromptTemplate.from_messages([
-    ("system", """당신은 주어진 정보를 사용해 사용자 이미지와 유사한 관광지를 추천하는 도우미입니다.
-다음 지침을 따르세요:
-1. 주어진 컨텍스트(추천 지역명, 혼잡도, 혼잡도 메시지, 유동인구 데이터)를 반드시 보여주면서 대답
-2. 추천 지역명을 받는 사람이 납득할 수 있는 추천 메시지로 생성
-3. 한국어로 100자 이내로 간결하게 답변"""),
-    MessagesPlaceholder(variable_name="messages")
-])
-
 @router.post("/gpt/{region_id}")
 async def get_gpt_response(
     region_id: str,
@@ -225,7 +215,18 @@ async def get_gpt_response(
         - 최대 유동인구: {data_info['record']['max_population']}
         """
 
-        # HumanMessage를 사용하여 메시지 생성
+        # 5. 각 요청마다 새로운 프롬프트 템플릿 인스턴스를 생성하여 메시지 체인 구성
+        # 이전 요청의 상태가 남아있지 않고, 항상 깨끗한 상태로 메시지 체인을 구성
+        prompt_template = ChatPromptTemplate.from_messages([
+            ("system", """당신은 주어진 정보를 사용해 사용자 이미지와 유사한 관광지를 추천하는 도우미입니다.
+            다음 지침을 따르세요:
+            1. 주어진 컨텍스트(추천 지역명, 혼잡도, 혼잡도 메시지, 유동인구 데이터)를 반드시 보여주면서 대답
+            2. 추천 지역명을 받는 사람이 납득할 수 있는 추천 메시지로 생성
+            3. 한국어로 100자 이내로 간결하게 답변"""),
+            MessagesPlaceholder(variable_name="messages")
+        ])
+
+        # HumanMessage를 사용하여 메시지 생성(메시지 리스트 초기화)
         messages = [HumanMessage(content=context_str)]
 
         # 프롬프트 템플릿을 사용하여 메시지 구성

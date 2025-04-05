@@ -65,6 +65,7 @@ else:
     engine = create_async_engine(SQLALCHEMY_DATABASE_URL,
                                 pool_size=10,  # 기본 연결 풀 크기
                                 max_overflow=20,  # 최대 초과 연결
+                                pool_recycle=1800,  # 30분마다 연결 재활용
                                 future=True, echo=False)
 
     AsyncSessionLocal = sessionmaker(
@@ -78,5 +79,8 @@ else:
 
     # 비동기 세션 의존성
     async def get_db():
-        async with AsyncSessionLocal() as db:
+        db = AsyncSessionLocal()
+        try:
             yield db
+        finally:
+            await db.close()  # 세션을 명시적으로 닫음
