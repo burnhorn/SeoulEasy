@@ -230,7 +230,7 @@ async def upload_image(file: UploadFile = File(...), db: AsyncSession = Depends(
     if guessed_type not in allowed_mime_types:
         raise HTTPException(status_code=400, detail="파일 확장자가 MIME 타입과 일치하지 않습니다.")
 
-    max_file_size = 5 * 1024 * 1024
+    max_file_size = 20 * 1024 * 1024
     file_size = 0
     for chunk in file.file:
         file_size += len(chunk)
