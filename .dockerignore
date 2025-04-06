@@ -12,3 +12,7 @@ node_modules
 test.py
 alembic.ini
 pop_api_test.py
+.svelte-kit
+__pycache__
+*.pyc
+*.pyo
