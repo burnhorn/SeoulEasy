@@ -1,6 +1,11 @@
-# SeoulEasy App
+# SeoulEasy
 
-**SeoulEasy App**은 **OpenAI의 CLIP 모델**을 활용하여 사용자가 업로드한 이미지를 분석하고, 해당 이미지와 가장 유사한 관광지를 추천합니다. CLIP 모델은 AI 기반으로 이미지와 텍스트 간의 유사도를 계산하며, 이를 통해 정확하고 직관적인 추천 결과를 제공합니다.
+**SeoulEasy**는 **OpenAI의 CLIP 모델**과 **Azure Computer Vision** 활용하여 사용자가 업로드한 이미지를 분석하고, **Azure OpenAI GPT-3.5 Turbo**로 해당 이미지와 가장 유사한 관광지를 추천합니다.
+
+- 사용자 이미지 업로드 시, CLIP 모델을 통해 이미지 임베딩과 시각적 유사성을 산출
+- Azure AI Vision API로 추출한 이미지 캡션, 주요 요소, 맥락을 설명하는 텍스트 정보를 제공
+- 동시에 실시간 데이터와 결합하여 GPT-3.5 Turbo에 전달
+    - “이미지와 유사한 이 관광지는 혼잡도가 낮아 방문하기에 적합하다”라는 자연어 기반의 추천 해설을 생성하여 이해할 수 있는 추천 서비스를 구현
 
 **FastAPI**를 백엔드로, **Svelte**를 프론트엔드로 사용하며, 백그라운드 작업을 통해 서울시의 실시간 데이터를 주기적으로 수집하고 API를 통해 추천 관광지의 혼잡도 및 인구 분포도 정보를 제공한 후, 프론트엔드에서 시각화합니다.
 
@@ -9,6 +14,10 @@
 ### 아래의 뱃지를 클릭하면 배포된 프로젝트 사이트로 이동합니다.
 [![프로젝트 배포 상태](https://img.shields.io/badge/프로젝트-배포중-brightgreen)](https://seouleasy-fastapi-svelte-ebdwarhrbma3hyap.koreacentral-01.azurewebsites.net/)
 
+---
+
+## 서비스 구조
+![Reference Image](https://github.com/burnhorn/SeoulEasy/raw/main/svelte-app/src/assets/images/architecture.svg)
 
 ---
 ## 사용 예시
@@ -39,13 +48,15 @@
         - CLIP 모델을 활용하여 이미지와 가장 유사한 관광지 3곳을 추천합니다.
         - 추천된 관광지는 한글로 번역되어 반환됩니다.
     - 파일 유효성 검사
-        - 업로드된 파일의 MIME 타입, 확장자, 크기 등을 검사하여 유효하지 않은 파일을 차단합니다.
+        - 업로드 파일의 MIME 타입, 확장자, 크기 등을 검사하여 유효하지 않은 파일을 차단합니다.
 
-3. **API 제공**
-   - 특정 지역의 실시간 데이터를 조회할 수 있는 API를 제공합니다.
-   - 페이징 처리 및 최신 데이터 우선 정렬 기능 포함.
+3. **Azure Computer Vision**
+    - 사용자가 업로드한 이미지의 캡션, 주요 요소, 맥락을 설명하는 텍스트 정보를 제공합니다.
 
-4. **데이터 시각화**
+4. **Azure OpenAI GPT-3.5 Turbo**
+    - 추천된 관광지와 해당 실시간 도시 데이터를 GPT-3.5 Turbo에 전달하여 자연어 기반의 추천 해설을 생성합니다.
+
+5. **데이터 시각화**
    - Svelte를 사용하여 데이터를 시각화합니다.
    - Plotly.js를 활용하여 차트를 생성하며, 반응형 디자인을 지원합니다.
 
@@ -53,7 +64,7 @@
 
 ## 기술 스택
 
-- **AI**: OpenAI의 CLIP 모델
+- **AI**: OpenAI의 CLIP 모델, Azure Computer Vision, GPT-3.5 Turbo
 - **백엔드**: FastAPI, SQLAlchemy, Azure Database for MySQL
 - **프론트엔드**: Svelte, Plotly.js
 - **비동기 작업**: Python `asyncio`, `httpx`
